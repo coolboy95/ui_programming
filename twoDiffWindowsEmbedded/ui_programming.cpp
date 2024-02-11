@@ -84,8 +84,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	HWND hWnd = CreateWindowExA(0, className1, "New Title1", WS_OVERLAPPEDWINDOW,
 		biggerClassX, biggerClassY, biggerClassW, biggerClassH, nullptr, nullptr, hInstance, nullptr);
 
-	HWND hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_OVERLAPPEDWINDOW,
-		biggerClassX + biggerClassW - smallerClassW, biggerClassY+biggerClassH-smallerClassH, smallerClassW, smallerClassH, nullptr, nullptr, hInstance, nullptr);
+	HWND hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_CHILD,
+		biggerClassW - smallerClassW, biggerClassH-smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
 
 	if (!hWnd || !hWnd2)
 	{
