@@ -5,6 +5,8 @@
 #include "ui_programming.h"
 #include "stdio.h"
 
+#define button1ID 1001
+
 HINSTANCE hInst;
 
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -89,7 +91,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		biggerClassW - smallerClassW, biggerClassH - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
 
 	HWND hWnd3 = CreateWindowExA(0, "BUTTON", "OK", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		0, biggerClassH - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr);
+		0, biggerClassH - smallerClassH, smallerClassW, smallerClassH, hWnd, HMENU(button1ID), (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr);
 
 	if (!hWnd || !hWnd2 || !hWnd3)
 	{
@@ -139,17 +141,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_COMMAND:
 	{
-		char str[50];
-		sprintf(str, "WM COMMAND %d", message);
+		WORD id = LOWORD(wParam);
+		WORD notificationCode = HIWORD(wParam);
+		char str[256];
+		sprintf_s(str, "UiProgramming MainWindow1 WM COMMAND id: %d notificationCode %d ", id, notificationCode);
 		OutputDebugStringA(str);
+		if (notificationCode == BN_CLICKED)
+		{
+			OutputDebugStringA("UiProgramming MainWindow1 Button is clicked");
+		}
 	}
 	break;
-	case WM_MOVE:
+	case WM_MOUSEMOVE:
 	{
-		int xPos = (int)LOWORD(lParam);   
+		int xPos = (int)LOWORD(lParam);
 		int yPos = (int)HIWORD(lParam);
-		char str[50];
-		sprintf(str, "WM MOVE x: %d y: %d", xPos, yPos);
+		char str[256];
+		sprintf_s(str, "UiProgramming MainWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
 	}
 	break;
@@ -157,8 +165,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int xPos = (int)LOWORD(lParam);
 		int yPos = (int)HIWORD(lParam);
-		char str[100];
-		sprintf(str, "WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
+		char str[256];
+		sprintf_s(str, "UiProgramming MainWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
 	}
 	break;
@@ -166,8 +174,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int xPos = (int)LOWORD(lParam);
 		int yPos = (int)HIWORD(lParam);
-		char str[100];
-		sprintf(str, "WM LBUTTON UP x: %d y: %d", xPos, yPos);
+		char str[256];
+		sprintf_s(str, "UiProgramming MainWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
 	}
 	break;
@@ -175,8 +183,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int xPos = (int)LOWORD(lParam);
 		int yPos = (int)HIWORD(lParam);
-		char str[100];
-		sprintf(str, "WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
+		char str[256];
+		sprintf_s(str, "UiProgramming MainWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
 	}
 	break;
@@ -184,8 +192,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		int xPos = (int)LOWORD(lParam);
 		int yPos = (int)HIWORD(lParam);
-		char str[100];
-		sprintf(str, "WM RBUTTON UP x: %d y: %d", xPos, yPos);
+		char str[256];
+		sprintf_s(str, "UiProgramming MainWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
 	}
 	break;
@@ -206,7 +214,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_DESTROY:
 	{
-		OutputDebugStringA("Win proc 1 WM_Destroy\n");
+		OutputDebugStringA("UiProgramming MainWindow1 Win proc 1 WM_Destroy\n");
 		PostQuitMessage(0);
 	}
 	break;
@@ -223,6 +231,51 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 	{
 
+	}
+	break;
+	case WM_MOUSEMOVE:
+	{
+		int xPos = (int)LOWORD(lParam);
+		int yPos = (int)HIWORD(lParam);
+		char str[256];
+		sprintf(str, "UiProgramming ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
+		OutputDebugStringA(str);
+	}
+	break;
+	case WM_LBUTTONDOWN:
+	{
+		int xPos = (int)LOWORD(lParam);
+		int yPos = (int)HIWORD(lParam);
+		char str[256];
+		sprintf_s(str, "UiProgramming ChildWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
+		OutputDebugStringA(str);
+	}
+	break;
+	case WM_LBUTTONUP:
+	{
+		int xPos = (int)LOWORD(lParam);
+		int yPos = (int)HIWORD(lParam);
+		char str[256];
+		sprintf_s(str, "UiProgramming ChildWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
+		OutputDebugStringA(str);
+	}
+	break;
+	case WM_RBUTTONDOWN:
+	{
+		int xPos = (int)LOWORD(lParam);
+		int yPos = (int)HIWORD(lParam);
+		char str[256];
+		sprintf_s(str, "UiProgramming ChidWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
+		OutputDebugStringA(str);
+	}
+	break;
+	case WM_RBUTTONUP:
+	{
+		int xPos = (int)LOWORD(lParam);
+		int yPos = (int)HIWORD(lParam);
+		char str[100];
+		sprintf_s(str, "UiProgramming ChidWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
+		OutputDebugStringA(str);
 	}
 	break;
 	case WM_PAINT:
@@ -243,7 +296,7 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_DESTROY:
 	{
-		OutputDebugStringA("Win proc 2 WM_Destroy\n");
+		OutputDebugStringA("UiProgramming Win proc 2 WM_Destroy\n");
 		PostQuitMessage(0);
 	}
 	break;
