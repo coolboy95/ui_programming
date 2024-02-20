@@ -5,14 +5,12 @@
 #include "ui_programming.h"
 #include "stdio.h"
 
-#define button1ID 1001
 #define biggerClassX 100
 #define biggerClassY 200
 #define biggerClassW 1000
 #define biggerClassH 500
 #define smallerClassW 400
 #define smallerClassH 100
-
 
 HINSTANCE hInst;
 
@@ -93,10 +91,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	HWND hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_CHILD,
 		(biggerClassW - NonClientAreaWidthOffset) - smallerClassW, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
 
-	HWND hWnd3 = CreateWindowExA(0, "BUTTON", "OK", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		0, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, HMENU(button1ID), (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr);
-
-	if (!hWnd || !hWnd2 || !hWnd3)
+	if (!hWnd || !hWnd2)
 	{
 		return FALSE;
 	}
@@ -106,9 +101,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	ShowWindow(hWnd2, TRUE);
 	UpdateWindow(hWnd2);
-
-	ShowWindow(hWnd3, TRUE);
-	UpdateWindow(hWnd3);
 
 	HACCEL hAccelTable = NULL;
 
@@ -122,7 +114,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	UnregisterClassA(className1, hInst);
 	UnregisterClassA(className2, hInst);
-	UnregisterClassA("BUTTON", hInst);
 
 	return (int)msg.wParam;
 }
@@ -138,21 +129,38 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 //
 
+void DrawRect(HDC hdc, RECT rect)
+{
+	HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
+	HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushYellow);
+
+	Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
+
+	SelectObject(hdc, hBrushInitial);
+	DeleteObject(hBrushYellow);
+
+
+	SetBkMode(hdc, TRANSPARENT);
+	HFONT newFont = CreateFontA(14, 0, 0, 0, 700, 0, 0, 0, ANSI_CHARSET, OUT_CHARACTER_PRECIS, CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY, DEFAULT_PITCH, "Times New Roman");
+	HFONT initialFont = (HFONT)SelectObject(hdc, newFont);
+
+	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
+	
+	DrawTextA(hdc, "YOLO", -1, &rect, DT_CENTER);
+
+	SelectObject(hdc, initialFont);
+	DeleteObject(newFont);
+
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 	case WM_COMMAND:
 	{
-		WORD id = LOWORD(wParam);
-		WORD notificationCode = HIWORD(wParam);
-		char str[256];
-		sprintf_s(str, "UiProgramming MainWindow1 WM COMMAND id: %d notificationCode %d ", id, notificationCode);
-		OutputDebugStringA(str);
-		if (notificationCode == BN_CLICKED)
-		{
-			OutputDebugStringA("UiProgramming MainWindow1 Button is clicked");
-		}
+		
 	}
 	break;
 	case WM_MOUSEMOVE:
@@ -212,6 +220,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
 		SelectObject(hdc, hBrushInitial);
 		DeleteObject(hBrushRed);
+		
+		RECT topRightRect = { biggerClassW - smallerClassW, 0 , outsideRect.right, smallerClassH};
+		DrawRect(hdc, topRightRect);
+
+
 		EndPaint(hWnd, &ps);
 	}
 	break;
@@ -225,26 +238,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return DefWindowProcA(hWnd, message, wParam, lParam);
 	}
 	return 0;
-}
-
-bool isOutsideChildwindow;
-
-void AddText(HDC hdc, int x, int y)
-{
-	SetBkMode(hdc, TRANSPARENT);
-	HFONT newFont = CreateFontA(14, 0, 0, 0, 700, 0, 0, 0, ANSI_CHARSET, OUT_CHARACTER_PRECIS, CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY, DEFAULT_PITCH, "Times New Roman");
-	HFONT initialFont = (HFONT)SelectObject(hdc, newFont);
-
-	RECT rect = { x - 50, y - 10, x + 50, y + 10 };
-
-	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
-	char str[256];
-	sprintf_s(str, "x: %d y: %d", x, y);
-	DrawTextA(hdc, str, -1, &rect, DT_CENTER);
-
-	SelectObject(hdc, initialFont);
-	DeleteObject(newFont);
 }
 
 LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -263,51 +256,11 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		char str[256];
 		sprintf_s(str, "UiProgramming ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
-		if (isOutsideChildwindow)
-		{
-			HDC currentDC = GetDC(hWnd);
-			RECT rect = {};
-			GetClientRect(hWnd, &rect);
-
-			HBRUSH hBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
-			HBRUSH hBrushInitial = (HBRUSH)SelectObject(currentDC, hBrushGreen);
-			Rectangle(currentDC, rect.left, rect.top, rect.right, rect.bottom);
-			SelectObject(currentDC, hBrushInitial);
-			DeleteObject(hBrushGreen);
-
-			int xCenter = (rect.right - rect.left) / 2;
-			int yCenter = (rect.bottom - rect.top) / 2;
-
-			AddText(currentDC, xCenter, yCenter);
-			ReleaseDC(hWnd, currentDC);
-
-			TRACKMOUSEEVENT me{};
-			me.cbSize = sizeof(TRACKMOUSEEVENT);
-			me.dwFlags = TME_HOVER | TME_LEAVE;
-			me.hwndTrack = hWnd;
-			me.dwHoverTime = HOVER_DEFAULT;
-			TrackMouseEvent(&me);
-			isOutsideChildwindow = false;
-		}
-
 	}
 	break;
 	case WM_MOUSELEAVE:
 	{
-		char str[256];
-		sprintf_s(str, "UiProgramming ChildWindow1 WM Mouse leave");
-		OutputDebugStringA(str);
-		HDC currentDC = GetDC(hWnd);
-		RECT outsideRect = {};
-		GetClientRect(hWnd, &outsideRect);
-
-		HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
-		HBRUSH hBrushInitial = (HBRUSH)SelectObject(currentDC, hBrushYellow);
-		Rectangle(currentDC, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
-		SelectObject(currentDC, hBrushInitial);
-		DeleteObject(hBrushYellow);
-		ReleaseDC(hWnd, currentDC);
-		isOutsideChildwindow = true;
+		
 	}
 	break;
 	case WM_LBUTTONDOWN:
@@ -348,17 +301,13 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_PAINT:
 	{
-		isOutsideChildwindow = true;
+
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 		RECT outsideRect = {};
 		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
 
-		HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
-		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushYellow);
-		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
-		SelectObject(hdc, hBrushInitial);
-		DeleteObject(hBrushYellow);
+		DrawRect(hdc, outsideRect);
 
 		EndPaint(hWnd, &ps);
 	}
