@@ -8,6 +8,12 @@
 #define button1ID 1001
 #define LBUTTONDOWNID 202
 #define LBUTTONDOWNNC 302
+#define biggerClassX 100
+#define biggerClassY 200
+#define biggerClassW 1000
+#define biggerClassH 500
+#define smallerClassW 400
+#define smallerClassH 100
 
 HINSTANCE hInst;
 
@@ -77,23 +83,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	hInst = hInstance;
 
-	int biggerClassX = 100;
-	int biggerClassY = 200;
-
-	int biggerClassW = 1000;
-	int biggerClassH = 500;
-
-	int smallerClassW = 400;
-	int smallerClassH = 100;
-
 	HWND hWnd = CreateWindowExA(0, className1, "New Title1", WS_OVERLAPPEDWINDOW,
 		biggerClassX, biggerClassY, biggerClassW, biggerClassH, nullptr, nullptr, hInstance, nullptr);
 
+
+	POINT biggerWindowBegin = { 0,0 };
+	ClientToScreen(hWnd, &biggerWindowBegin);
+	int NonClientAreaHeight = biggerWindowBegin.y - biggerClassY;
+	int NonClientAreaWidthOffset = biggerWindowBegin.x - biggerClassX;
+
 	HWND hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_CHILD,
-		biggerClassW - smallerClassW, biggerClassH - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
+		(biggerClassW - NonClientAreaWidthOffset) - smallerClassW, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
 
 	HWND hWnd3 = CreateWindowExA(0, "BUTTON", "OK", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		0, biggerClassH - smallerClassH, smallerClassW, smallerClassH, hWnd, HMENU(button1ID), (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr);
+		0, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, HMENU(button1ID), (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr);
 
 	if (!hWnd || !hWnd2 || !hWnd3)
 	{
@@ -239,13 +242,13 @@ void AddText(HDC hdc, int x, int y)
 		DEFAULT_QUALITY, DEFAULT_PITCH, "Times New Roman");
 	HFONT initialFont = (HFONT)SelectObject(hdc, newFont);
 
-	RECT rect = { x-50, y-10, x+50, y+10 };
+	RECT rect = { x - 50, y - 10, x + 50, y + 10 };
 
 	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
 	char str[256];
 	sprintf_s(str, "x: %d y: %d", x, y);
 	DrawTextA(hdc, str, -1, &rect, DT_CENTER);
-	 
+
 	SelectObject(hdc, initialFont);
 	DeleteObject(newFont);
 }
@@ -277,7 +280,7 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			Rectangle(currentDC, rect.left, rect.top, rect.right, rect.bottom);
 			SelectObject(currentDC, hBrushInitial);
 			DeleteObject(hBrushGreen);
-			
+
 			int xCenter = (rect.right - rect.left) / 2;
 			int yCenter = (rect.bottom - rect.top) / 2;
 
@@ -292,7 +295,7 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			TrackMouseEvent(&me);
 			isOutsideChildwindow = false;
 		}
-		
+
 	}
 	break;
 	case WM_MOUSELEAVE:
