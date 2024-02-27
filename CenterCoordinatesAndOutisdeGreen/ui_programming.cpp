@@ -15,6 +15,8 @@
 #define smallerClassW 400
 #define smallerClassH 100
 #define logPrefix "UiProgramming "
+#define loword(a) ((WORD)(a))
+#define hiword(a) ((WORD)(((DWORD)(a) >> 16) & 0xFFFF))
 
 void log(const char* str)
 {
@@ -154,7 +156,7 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	{
 	case WM_COMMAND:
 	{
-		WORD id = LOWORD(wParam);
+		WORD id = loword(wParam);
 		WORD notificationCode = HIWORD(wParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM COMMAND id: %d notificationCode %d ", id, notificationCode);
@@ -171,8 +173,8 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	break;
 	case WM_MOUSEMOVE:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
@@ -180,8 +182,8 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	break;
 	case WM_LBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
 		log(str);
@@ -189,8 +191,8 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	break;
 	case WM_LBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
 		log(str);
@@ -198,8 +200,8 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	break;
 	case WM_RBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
 		log(str);
@@ -207,8 +209,8 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	break;
 	case WM_RBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
 		log(str);
@@ -217,7 +219,7 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
-		log("WM paint main window called");
+		log("MainWindow WM paint called");
 		HDC hdc = BeginPaint(hWnd, &ps);
 		RECT outsideRect = {};
 		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
@@ -273,8 +275,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_MOUSEMOVE:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
@@ -326,8 +328,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_LBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
 		log(str);
@@ -337,8 +339,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_LBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
 		log(str);
@@ -346,8 +348,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_RBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "ChidWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
 		log(str);
@@ -355,8 +357,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_RBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[100];
 		sprintf_s(str, "ChidWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
 		log(str);
@@ -367,8 +369,7 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		isOutsideChildwindow = true;
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-
-		log("WM paint child window called");
+		log("ChildWindow WM paint called");
 		RECT outsideRect = {};
 		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
 

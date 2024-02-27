@@ -12,10 +12,23 @@
 #define smallerClassW 400
 #define smallerClassH 100
 
+#define logPrefix "UiProgramming "
+#define loword(a) ((WORD)(a))
+#define hiword(a) ((WORD)(((DWORD)(a) >> 16) & 0xFFFF))
+
+void log(const char* str)
+{
+	char data[256];
+	strcpy(data, logPrefix);
+	strcat(data, str);
+	OutputDebugStringA(data);
+}
+
+
 HINSTANCE hInst;
 
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-LRESULT CALLBACK    WndProc2(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK    WndProcMainWindow(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK    WndProcChildWindow(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -32,7 +45,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	wcex.cbSize = sizeof(wcex);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc = WndProc;
+	wcex.lpfnWndProc = WndProcMainWindow;
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
@@ -47,17 +60,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	if (x)
 	{
-		OutputDebugStringA("class 1 registered\n");
+		log("class 1 registered\n");
 	}
 	else {
-		OutputDebugStringA("class 1 not registered\n");
+		log("class 1 not registered\n");
 	}
 
 	WNDCLASSEXA wcex2 = {};
 
 	wcex2.cbSize = sizeof(wcex2);
 	wcex2.style = CS_HREDRAW | CS_VREDRAW;
-	wcex2.lpfnWndProc = WndProc2;
+	wcex2.lpfnWndProc = WndProcChildWindow;
 	wcex2.cbClsExtra = 0;
 	wcex2.cbWndExtra = 0;
 	wcex2.hInstance = hInstance;
@@ -72,10 +85,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	if (y)
 	{
-		OutputDebugStringA("class 2 registered\n");
+		log("class 2 registered\n");
 	}
 	else {
-		OutputDebugStringA("class 2 not registered\n");
+		log("class 2 not registered\n");
 	}
 
 	hInst = hInstance;
@@ -146,7 +159,7 @@ void DrawRect(HDC hdc, RECT rect)
 	HFONT initialFont = (HFONT)SelectObject(hdc, newFont);
 
 	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
-	
+
 	DrawTextA(hdc, "YOLO", -1, &rect, DT_CENTER);
 
 	SelectObject(hdc, initialFont);
@@ -154,57 +167,57 @@ void DrawRect(HDC hdc, RECT rect)
 
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 	case WM_COMMAND:
 	{
-		
+
 	}
 	break;
 	case WM_MOUSEMOVE:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming MainWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "MainWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_LBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming MainWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "MainWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_LBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming MainWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "MainWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_RBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming MainWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "MainWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_RBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming MainWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
+		sprintf_s(str, "MainWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
 		OutputDebugStringA(str);
 	}
 	break;
@@ -220,8 +233,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
 		SelectObject(hdc, hBrushInitial);
 		DeleteObject(hBrushRed);
-		
-		RECT topRightRect = { biggerClassW - smallerClassW, 0 , outsideRect.right, smallerClassH};
+
+		RECT topRightRect = { biggerClassW - smallerClassW, 0 , outsideRect.right, smallerClassH };
 		DrawRect(hdc, topRightRect);
 
 
@@ -230,7 +243,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_DESTROY:
 	{
-		OutputDebugStringA("UiProgramming MainWindow1 Win proc 1 WM_Destroy\n");
+		log("MainWindow1 Win proc WM_Destroy\n");
 		PostQuitMessage(0);
 	}
 	break;
@@ -240,7 +253,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -251,52 +264,52 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_MOUSEMOVE:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_MOUSELEAVE:
 	{
-		
+
 	}
 	break;
 	case WM_LBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming ChildWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "ChildWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_LBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming ChildWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "ChildWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_RBUTTONDOWN:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[256];
-		sprintf_s(str, "UiProgramming ChidWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "ChidWindow1 WM RBUTTON DOWN x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_RBUTTONUP:
 	{
-		WORD xPos = LOWORD(lParam);
-		WORD yPos = HIWORD(lParam);
+		WORD xPos = loword(lParam);
+		WORD yPos = hiword(lParam);
 		char str[100];
-		sprintf_s(str, "UiProgramming ChidWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
-		OutputDebugStringA(str);
+		sprintf_s(str, "ChidWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
+		log(str);
 	}
 	break;
 	case WM_PAINT:
@@ -310,12 +323,6 @@ LRESULT CALLBACK WndProc2(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DrawRect(hdc, outsideRect);
 
 		EndPaint(hWnd, &ps);
-	}
-	break;
-	case WM_DESTROY:
-	{
-		OutputDebugStringA("UiProgramming Win proc 2 WM_Destroy\n");
-		PostQuitMessage(0);
 	}
 	break;
 	default:
