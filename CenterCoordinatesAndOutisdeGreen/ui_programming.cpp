@@ -223,7 +223,6 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		HDC hdc = BeginPaint(hWnd, &ps);
 		RECT outsideRect = {};
 		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
-
 		HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushRed);
 		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
@@ -244,9 +243,9 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	return 0;
 }
 
-bool isOutsideChildwindow;
 
-void AddText(HDC hdc, int x, int y)
+
+void AddText(HDC hdc, size_t x, size_t y)
 {
 	SetBkMode(hdc, TRANSPARENT);
 	HFONT newFont = CreateFontA(14, 0, 0, 0, 700, 0, 0, 0, ANSI_CHARSET, OUT_CHARACTER_PRECIS, CLIP_DEFAULT_PRECIS,
@@ -257,12 +256,14 @@ void AddText(HDC hdc, int x, int y)
 
 	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
 	char str[256];
-	sprintf_s(str, "x: %d y: %d", x, y);
+	sprintf_s(str, "x: %zu y: %zu", x, y);
 	DrawTextA(hdc, str, -1, &rect, DT_CENTER);
 
 	SelectObject(hdc, initialFont);
 	DeleteObject(newFont);
 }
+
+bool isInsideChildwindow = false;
 
 LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -280,32 +281,16 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
-		if (isOutsideChildwindow)
+		if (!isInsideChildwindow)
 		{
-			HDC currentDC = GetDC(hWnd);
-			RECT rect = {};
-			GetClientRect(hWnd, &rect);
-
-			HBRUSH hBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
-			HBRUSH hBrushInitial = (HBRUSH)SelectObject(currentDC, hBrushGreen);
-			Rectangle(currentDC, rect.left, rect.top, rect.right, rect.bottom);
-			SelectObject(currentDC, hBrushInitial);
-			DeleteObject(hBrushGreen);
-			size_t xCenter = (rect.right - rect.left) / 2;
-			size_t yCenter = (rect.bottom - rect.top) / 2;
-
-			AddText(currentDC, xCenter, yCenter);
-			ReleaseDC(hWnd, currentDC);
-
 			TRACKMOUSEEVENT me{};
 			me.cbSize = sizeof(TRACKMOUSEEVENT);
 			me.dwFlags = TME_HOVER | TME_LEAVE;
 			me.hwndTrack = hWnd;
 			me.dwHoverTime = HOVER_DEFAULT;
 			TrackMouseEvent(&me);
-			isOutsideChildwindow = false;
+			isInsideChildwindow = true;
 		}
-
 	}
 	break;
 	case WM_MOUSELEAVE:
@@ -313,17 +298,7 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM Mouse leave");
 		log(str);
-		HDC currentDC = GetDC(hWnd);
-		RECT outsideRect = {};
-		GetClientRect(hWnd, &outsideRect);
-
-		HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
-		HBRUSH hBrushInitial = (HBRUSH)SelectObject(currentDC, hBrushYellow);
-		Rectangle(currentDC, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
-		SelectObject(currentDC, hBrushInitial);
-		DeleteObject(hBrushYellow);
-		ReleaseDC(hWnd, currentDC);
-		isOutsideChildwindow = true;
+		isInsideChildwindow = false;
 	}
 	break;
 	case WM_LBUTTONDOWN:
@@ -366,18 +341,31 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_PAINT:
 	{
-		isOutsideChildwindow = true;
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 		log("ChildWindow WM paint called");
-		RECT outsideRect = {};
-		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
+		RECT rect = {};
+		GetClientRect(hWnd, &rect); // get the client area rectangle
 
-		HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
-		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushYellow);
-		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
-		SelectObject(hdc, hBrushInitial);
-		DeleteObject(hBrushYellow);
+		if (isInsideChildwindow)
+		{
+			HBRUSH hBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
+			HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushGreen);
+			Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
+			SelectObject(hdc, hBrushInitial);
+			DeleteObject(hBrushGreen);
+			size_t xCenter = (rect.right - rect.left) / 2;
+			size_t yCenter = (rect.bottom - rect.top) / 2;
+			AddText(hdc, xCenter, yCenter);
+		}
+		else 
+		{
+			HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
+			HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushYellow);
+			Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
+			SelectObject(hdc, hBrushInitial);
+			DeleteObject(hBrushYellow);
+		}
 
 		EndPaint(hWnd, &ps);
 	}
