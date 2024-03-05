@@ -6,8 +6,8 @@
 #include "stdio.h"
 
 #define button1ID 1001
-#define LBUTTONDOWNID 202
-#define LBUTTONDOWNNC 302
+#define LBUTTONCLICKID 202
+#define LBUTTONCLICKNC 302
 #define biggerClassX 100
 #define biggerClassY 200
 #define biggerClassW 1000
@@ -165,9 +165,9 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		{
 			log("MainWindow1 Button is clicked");
 		}
-		else if (notificationCode == LBUTTONDOWNNC)
+		else if (notificationCode == LBUTTONCLICKNC)
 		{
-			log("MainWindow1 L button down");
+			log("MainWindow1 L button clicked");
 		}
 	}
 	break;
@@ -308,8 +308,6 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM LBUTTON DOWN x: %d y: %d", xPos, yPos);
 		log(str);
-		WPARAM wParam = MAKEWPARAM(LBUTTONDOWNID, LBUTTONDOWNNC);
-		SendMessageA(GetParent(hWnd), WM_COMMAND, wParam, NULL);
 	}
 	break;
 	case WM_LBUTTONUP:
@@ -319,6 +317,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
 		log(str);
+		WPARAM wParam = MAKEWPARAM(LBUTTONCLICKID, LBUTTONCLICKNC);
+		SendMessageA(GetParent(hWnd), WM_COMMAND, wParam, NULL);
 	}
 	break;
 	case WM_RBUTTONDOWN:

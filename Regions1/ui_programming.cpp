@@ -97,7 +97,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_COMMAND:
 	{
-	
+
 	}
 	break;
 	case WM_PAINT:
@@ -109,7 +109,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		HBRUSH hBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
 		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushBlue);
-		
+
 		HRGN RectRgn = CreateRectRgn(600, 200, 900, 400);
 
 		HRGN EllipseRgn = CreateEllipticRgn(500, 150, 700, 300);
@@ -120,17 +120,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		CombineRgn(EllipseRgn, EllipseRgn, RectRgn2, RGN_DIFF);
 		PaintRgn(hdc, EllipseRgn);
 		DeleteObject(RectRgn2);
-		
+
 		HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 		SelectObject(hdc, hBrushRed);
 		DeleteObject(hBrushBlue);
-		FrameRgn(hdc, EllipseRgn, hBrushRed, 5,5);
+		FrameRgn(hdc, EllipseRgn, hBrushRed, 5, 5);
+
+		SetArcDirection(hdc, AD_CLOCKWISE);
+		Arc(hdc, 100, 100, 200, 200, 150, 200, 200, 150);
+		MoveToEx(hdc, 200, 150, nullptr);
+		LineTo(hdc, 350, 150);
+		LineTo(hdc, 350, 250);
+		LineTo(hdc, 150, 250);
+		LineTo(hdc, 150, 200);
+
+		EndPath(hdc);
+		StrokeAndFillPath(hdc);
 
 		DeleteObject(EllipseRgn);
 		SelectObject(hdc, hBrushInitial);
 		DeleteObject(hBrushRed);
-		
-		
+
+
 		EndPaint(hWnd, &ps);
 	}
 	break;
