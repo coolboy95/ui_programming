@@ -4,16 +4,15 @@
 #include "framework.h"
 #include "ui_programming.h"
 #include "stdio.h"
+#include "time.h"
 
-#define button1ID 1001
-#define LBUTTONCLICKID 202
-#define LBUTTONCLICKNC 302
 #define biggerClassX 100
 #define biggerClassY 200
 #define biggerClassW 1000
 #define biggerClassH 500
 #define smallerClassW 400
 #define smallerClassH 100
+
 #define logPrefix "UiProgramming "
 #define loword(a) ((WORD)(a))
 #define hiword(a) ((WORD)(((DWORD)(a) >> 16) & 0xFFFF))
@@ -26,10 +25,28 @@ void log(const char* str)
 	OutputDebugStringA(data);
 }
 
+
 HINSTANCE hInst;
+const UINT timer_id = 10;
 
 LRESULT CALLBACK    WndProcMainWindow(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    WndProcChildWindow(HWND, UINT, WPARAM, LPARAM);
+
+VOID __stdcall MyTimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+{
+	time_t rawtime;
+	struct tm* timeinfo;
+	char buffer[80];
+	if (WM_TIMER == uMsg) {
+		if (idEvent == timer_id) {
+			time(&rawtime);
+			timeinfo = localtime(&rawtime);
+			strftime(buffer, 80, "Now time is %I:%M:%S%p.", timeinfo);
+			SetWindowTextA(hWnd, buffer);
+		}
+	}
+}
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -82,7 +99,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	wcex2.lpszClassName = className2;
 	wcex2.hIconSm = nullptr;
 
-	size_t y = RegisterClassExA(&wcex2);
+	int y = RegisterClassExA(&wcex2);
 
 	if (y)
 	{
@@ -97,19 +114,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	HWND hWnd = CreateWindowExA(0, className1, "New Title1", WS_OVERLAPPEDWINDOW,
 		biggerClassX, biggerClassY, biggerClassW, biggerClassH, nullptr, nullptr, hInstance, nullptr);
 
-
 	POINT biggerWindowBegin = { 0,0 };
 	ClientToScreen(hWnd, &biggerWindowBegin);
-	size_t NonClientAreaHeight = biggerWindowBegin.y - biggerClassY;
-	size_t NonClientAreaWidthOffset = biggerWindowBegin.x - biggerClassX;
+	int NonClientAreaHeight = biggerWindowBegin.y - biggerClassY;
+	int NonClientAreaWidthOffset = biggerWindowBegin.x - biggerClassX;
 
 	HWND hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_CHILD,
 		(biggerClassW - NonClientAreaWidthOffset) - smallerClassW, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
-
-	HWND hWnd3 = CreateWindowExA(0, "BUTTON", "OK", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-		0, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, HMENU(button1ID), (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), nullptr);
-
-	if (!hWnd || !hWnd2 || !hWnd3)
+	
+	if (!hWnd || !hWnd2)
 	{
 		return FALSE;
 	}
@@ -120,8 +133,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	ShowWindow(hWnd2, TRUE);
 	UpdateWindow(hWnd2);
 
-	ShowWindow(hWnd3, TRUE);
-	UpdateWindow(hWnd3);
+	SetTimer(hWnd, timer_id, 1000, (TIMERPROC)MyTimerProc);
 
 	HACCEL hAccelTable = NULL;
 
@@ -135,6 +147,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	UnregisterClassA(className1, hInst);
 	UnregisterClassA(className2, hInst);
+	KillTimer(hWnd, timer_id);
 
 	return (int)msg.wParam;
 }
@@ -156,18 +169,14 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	{
 	case WM_COMMAND:
 	{
-		WORD id = loword(wParam);
-		WORD notificationCode = HIWORD(wParam);
-		char str[256];
-		sprintf_s(str, "MainWindow1 WM COMMAND id: %d notificationCode %d ", id, notificationCode);
-		log(str);
-		if (notificationCode == BN_CLICKED)
+
+	}
+	break;
+	case WM_TIMER:
+	{
+		case timer_id:
 		{
-			log("MainWindow1 Button is clicked");
-		}
-		else if (notificationCode == LBUTTONCLICKNC)
-		{
-			log("MainWindow1 L button clicked");
+			log("timmer event received");
 		}
 	}
 	break;
@@ -213,27 +222,28 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		WORD yPos = hiword(lParam);
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM RBUTTON UP x: %d y: %d", xPos, yPos);
-		log(str);
+		OutputDebugStringA(str);
 	}
 	break;
 	case WM_PAINT:
 	{
 		PAINTSTRUCT ps;
-		log("MainWindow WM paint called");
 		HDC hdc = BeginPaint(hWnd, &ps);
 		RECT outsideRect = {};
 		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
+
 		HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushRed);
 		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
 		SelectObject(hdc, hBrushInitial);
 		DeleteObject(hBrushRed);
+
 		EndPaint(hWnd, &ps);
 	}
 	break;
 	case WM_DESTROY:
 	{
-		log("MainWindow1 Win proc 1 WM_Destroy\n");
+		log("MainWindow1 Win proc WM_Destroy\n");
 		PostQuitMessage(0);
 	}
 	break;
@@ -242,28 +252,6 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	}
 	return 0;
 }
-
-
-
-void AddText(HDC hdc, size_t x, size_t y)
-{
-	SetBkMode(hdc, TRANSPARENT);
-	HFONT newFont = CreateFontA(14, 0, 0, 0, 700, 0, 0, 0, ANSI_CHARSET, OUT_CHARACTER_PRECIS, CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY, DEFAULT_PITCH, "Times New Roman");
-	HFONT initialFont = (HFONT)SelectObject(hdc, newFont);
-
-	RECT rect = { x - 50, y - 10, x + 50, y + 10 };
-
-	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
-	char str[256];
-	sprintf_s(str, "x: %zu y: %zu", x, y);
-	DrawTextA(hdc, str, -1, &rect, DT_CENTER);
-
-	SelectObject(hdc, initialFont);
-	DeleteObject(newFont);
-}
-
-bool isInsideChildwindow = false;
 
 LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -281,26 +269,11 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
-		if (!isInsideChildwindow)
-		{
-			TRACKMOUSEEVENT me{};
-			me.cbSize = sizeof(TRACKMOUSEEVENT);
-			me.dwFlags = TME_HOVER | TME_LEAVE;
-			me.hwndTrack = hWnd;
-			me.dwHoverTime = HOVER_DEFAULT;
-			TrackMouseEvent(&me);
-			isInsideChildwindow = true;
-			InvalidateRect(hWnd, NULL, NULL);
-		}
 	}
 	break;
 	case WM_MOUSELEAVE:
 	{
-		char str[256];
-		sprintf_s(str, "ChildWindow1 WM Mouse leave");
-		log(str);
-		isInsideChildwindow = false;
-		InvalidateRect(hWnd, NULL, NULL);
+
 	}
 	break;
 	case WM_LBUTTONDOWN:
@@ -319,8 +292,6 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM LBUTTON UP x: %d y: %d", xPos, yPos);
 		log(str);
-		WPARAM wParam = MAKEWPARAM(LBUTTONCLICKID, LBUTTONCLICKNC);
-		SendMessageA(GetParent(hWnd), WM_COMMAND, wParam, NULL);
 	}
 	break;
 	case WM_RBUTTONDOWN:
@@ -343,31 +314,11 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	break;
 	case WM_PAINT:
 	{
+
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
-		log("ChildWindow WM paint called");
-		RECT rect = {};
-		GetClientRect(hWnd, &rect); // get the client area rectangle
-
-		if (isInsideChildwindow)
-		{
-			HBRUSH hBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
-			HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushGreen);
-			Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
-			SelectObject(hdc, hBrushInitial);
-			DeleteObject(hBrushGreen);
-			size_t xCenter = (rect.right - rect.left) / 2;
-			size_t yCenter = (rect.bottom - rect.top) / 2;
-			AddText(hdc, xCenter, yCenter);
-		}
-		else
-		{
-			HBRUSH hBrushYellow = CreateSolidBrush(RGB(255, 255, 0));
-			HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushYellow);
-			Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
-			SelectObject(hdc, hBrushInitial);
-			DeleteObject(hBrushYellow);
-		}
+		RECT outsideRect = {};
+		GetClientRect(hWnd, &outsideRect); // get the client area rectangle
 
 		EndPaint(hWnd, &ps);
 	}
