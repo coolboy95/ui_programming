@@ -168,9 +168,9 @@ void AddText(HDC hdc, size_t x, size_t y)
 	DeleteObject(newFont);
 }
 
-void DrawRect(HDC hdc, RECT rect, bool isInsideChildwindow)
+void DrawRect(HDC hdc, RECT rect, bool isInsideRect)
 {
-	if (isInsideChildwindow)
+	if (isInsideRect)
 	{
 		HBRUSH hBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
 		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushGreen);
@@ -200,7 +200,7 @@ int topRectLeft;
 int topRectRight;
 int topRectBottom;
 
-bool IsInsideMainWindowRect(int x, int y)
+bool IsInsideMainWindowTopRect(int x, int y)
 {
 	return ((x > topRectLeft) && (x< topRectRight) && (y> topRectTop) && (y< topRectBottom));
 }
@@ -233,7 +233,7 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
-		if (!isInsideTopRightRect && IsInsideMainWindowRect(xPos, yPos))
+		if (!isInsideTopRightRect && IsInsideMainWindowTopRect(xPos, yPos))
 		{
 			TRACKMOUSEEVENT me{};
 			me.cbSize = sizeof(TRACKMOUSEEVENT);
@@ -244,7 +244,7 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			isInsideTopRightRect = true;
 			InvalidateRect(hWnd, NULL, NULL);
 		}
-		else if (!IsInsideMainWindowRect(xPos, yPos) && isInsideTopRightRect)
+		else if (!IsInsideMainWindowTopRect(xPos, yPos) && isInsideTopRightRect)
 		{
 			isInsideTopRightRect = false;
 			InvalidateRect(hWnd, NULL, NULL);
