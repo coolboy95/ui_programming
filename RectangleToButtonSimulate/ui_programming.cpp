@@ -13,7 +13,7 @@
 #define biggerClassW 1000
 #define biggerClassH 500
 #define smallerClassW 400
-#define smallerClassH 100
+#define smallerClassH 200
 #define logPrefix "UiProgramming "
 #define loword(a) ((WORD)(a))
 #define hiword(a) ((WORD)(((DWORD)(a) >> 16) & 0xFFFF))
@@ -150,7 +150,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //
 //
 
-void AddText(HDC hdc, size_t x, size_t y)
+void AddText(HDC hdc, size_t x, size_t y, size_t xText, size_t yText)
 {
 	SetBkMode(hdc, TRANSPARENT);
 	HFONT newFont = CreateFontA(14, 0, 0, 0, 700, 0, 0, 0, ANSI_CHARSET, OUT_CHARACTER_PRECIS, CLIP_DEFAULT_PRECIS,
@@ -161,14 +161,14 @@ void AddText(HDC hdc, size_t x, size_t y)
 
 	SetTextColor(hdc, RGB(0, 0, 0)); // Setting black color
 	char str[256];
-	sprintf_s(str, "x: %zu y: %zu", x, y);
+	sprintf_s(str, "x: %zu y: %zu", xText, yText);
 	DrawTextA(hdc, str, -1, &rect, DT_CENTER);
 
 	SelectObject(hdc, initialFont);
 	DeleteObject(newFont);
 }
 
-void DrawRect(HDC hdc, RECT rect, bool isInsideRect)
+void DrawRect(HDC hdc, RECT rect, bool isInsideRect, size_t xText, size_t yText)
 {
 	if (isInsideRect)
 	{
@@ -179,7 +179,7 @@ void DrawRect(HDC hdc, RECT rect, bool isInsideRect)
 		DeleteObject(hBrushGreen);
 		size_t xCenter = (rect.right - rect.left) / 2;
 		size_t yCenter = (rect.bottom - rect.top) / 2;
-		AddText(hdc, rect.left + xCenter, rect.top + yCenter);
+		AddText(hdc, rect.left + xCenter, rect.top + yCenter, xText, yText);
 	}
 	else
 	{
@@ -199,10 +199,12 @@ int topRectTop;
 int topRectLeft;
 int topRectRight;
 int topRectBottom;
+size_t xPosMainWindow;
+size_t yPosMainWindow;
 
 bool IsInsideMainWindowTopRect(int x, int y)
 {
-	return ((x > topRectLeft) && (x< topRectRight) && (y> topRectTop) && (y< topRectBottom));
+	return ((x > topRectLeft) && (x < topRectRight) && (y > topRectTop) && (y < topRectBottom));
 }
 
 LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -230,6 +232,8 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	{
 		WORD xPos = loword(lParam);
 		WORD yPos = hiword(lParam);
+		xPosMainWindow = xPos;
+		yPosMainWindow = yPos;
 		char str[256];
 		sprintf_s(str, "MainWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
@@ -247,6 +251,10 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		else if (!IsInsideMainWindowTopRect(xPos, yPos) && isInsideTopRightRect)
 		{
 			isInsideTopRightRect = false;
+			InvalidateRect(hWnd, NULL, NULL);
+		}
+		else if (IsInsideMainWindowTopRect(xPos, yPos))
+		{
 			InvalidateRect(hWnd, NULL, NULL);
 		}
 	}
@@ -307,7 +315,7 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		HBRUSH hBrushRed = CreateSolidBrush(RGB(255, 0, 0));
 		HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushRed);
 		Rectangle(hdc, outsideRect.left, outsideRect.top, outsideRect.right, outsideRect.bottom);
-		
+
 
 		SelectObject(hdc, hBrushInitial);
 		DeleteObject(hBrushRed);
@@ -319,7 +327,7 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		topRectRight = outsideRect.right;
 		topRectBottom = smallerClassH;
 
-		DrawRect(hdc, topRightRect, isInsideTopRightRect);
+		DrawRect(hdc, topRightRect, isInsideTopRightRect, xPosMainWindow, yPosMainWindow);
 		EndPaint(hWnd, &ps);
 	}
 	break;
@@ -335,6 +343,9 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	return 0;
 }
 
+size_t xPosChild;
+size_t yPosChild;
+
 LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -348,6 +359,8 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	{
 		WORD xPos = loword(lParam);
 		WORD yPos = hiword(lParam);
+		xPosChild = xPos;
+		yPosChild = yPos;
 		char str[256];
 		sprintf_s(str, "ChildWindow1 WM Mouse MOVE x: %d y: %d", xPos, yPos);
 		log(str);
@@ -360,6 +373,9 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			me.dwHoverTime = HOVER_DEFAULT;
 			TrackMouseEvent(&me);
 			isInsideChildwindow = true;
+			InvalidateRect(hWnd, NULL, NULL);
+		}
+		else {
 			InvalidateRect(hWnd, NULL, NULL);
 		}
 	}
@@ -418,7 +434,7 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		log("ChildWindow WM paint called");
 		RECT rect = {};
 		GetClientRect(hWnd, &rect); // get the client area rectangle
-		DrawRect(hdc, rect, isInsideChildwindow);
+		DrawRect(hdc, rect, isInsideChildwindow, xPosChild, yPosChild);
 
 		EndPaint(hWnd, &ps);
 	}
