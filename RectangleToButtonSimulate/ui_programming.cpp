@@ -4,7 +4,10 @@
 #include "framework.h"
 #include "ui_programming.h"
 #include "stdio.h"
+#include <thread>
 
+#define UPDATEPROGRESSID 203
+#define UPDATEPROGRESSNC 303
 #define button1ID 1001
 #define LBUTTONCLICKID 202
 #define LBUTTONCLICKNC 302
@@ -27,6 +30,9 @@ void log(const char* str)
 }
 
 HINSTANCE hInst;
+HWND hWnd2;
+HWND hWnd;
+double rightPercentageChildWindow;
 
 LRESULT CALLBACK    WndProcMainWindow(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK    WndProcChildWindow(HWND, UINT, WPARAM, LPARAM);
@@ -94,7 +100,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	hInst = hInstance;
 
-	HWND hWnd = CreateWindowExA(0, className1, "New Title1", WS_OVERLAPPEDWINDOW,
+	hWnd = CreateWindowExA(0, className1, "New Title1", WS_OVERLAPPEDWINDOW,
 		biggerClassX, biggerClassY, biggerClassW, biggerClassH, nullptr, nullptr, hInstance, nullptr);
 
 
@@ -103,7 +109,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	size_t NonClientAreaHeight = biggerWindowBegin.y - biggerClassY;
 	size_t NonClientAreaWidthOffset = biggerWindowBegin.x - biggerClassX;
 
-	HWND hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_CHILD,
+	hWnd2 = CreateWindowExA(0, className2, "New Title2", WS_CHILD,
 		(biggerClassW - NonClientAreaWidthOffset) - smallerClassW, (biggerClassH - NonClientAreaHeight) - smallerClassH, smallerClassW, smallerClassH, hWnd, nullptr, hInstance, nullptr);
 
 	HWND hWnd3 = CreateWindowExA(0, "BUTTON", "OK", WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
@@ -127,11 +133,30 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	MSG msg;
 
+	std::thread t([]() {
+
+		while (1)
+		{
+			if (rightPercentageChildWindow >= 1.0)
+			{
+				break;
+			}
+			rightPercentageChildWindow += 0.1;
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			WPARAM wParam = MAKEWPARAM(UPDATEPROGRESSID, UPDATEPROGRESSNC);
+			SendMessageA(hWnd, WM_COMMAND, wParam, NULL);
+			SendMessageA(hWnd2, WM_COMMAND, wParam, NULL);
+		}
+
+		});
+
 	// Main message loop:
 	while (GetMessage(&msg, nullptr, 0, 0))
 	{
 		DispatchMessage(&msg);
 	}
+
+	t.join();
 
 	UnregisterClassA(className1, hInst);
 	UnregisterClassA(className2, hInst);
@@ -190,6 +215,21 @@ void DrawRect(HDC hdc, RECT rect, bool isInsideRect, size_t xText, size_t yText)
 		DeleteObject(hBrushYellow);
 	}
 
+	RECT originalRect = { rect.left + 40, rect.top + 20, rect.left + 250, rect.top + 40 };
+	RECT progressRect = { rect.left + 40, rect.top + 20, rect.left + 250, rect.top + 40 };
+	//GetClientRect(hWnd, &outsideRect); // get the client area rectangle
+
+	HBRUSH hBrushGreen = CreateSolidBrush(RGB(0, 255, 0));
+	HBRUSH hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushGreen);
+	Rectangle(hdc, originalRect.left, originalRect.top, originalRect.right, originalRect.bottom);
+	SelectObject(hdc, hBrushInitial);
+	DeleteObject(hBrushGreen);
+
+	HBRUSH hBrushBlue = CreateSolidBrush(RGB(0, 0, 255));
+	hBrushInitial = (HBRUSH)SelectObject(hdc, hBrushBlue);
+	Rectangle(hdc, progressRect.left, progressRect.top, progressRect.left + (progressRect.right - progressRect.left) * rightPercentageChildWindow, progressRect.bottom);
+	SelectObject(hdc, hBrushInitial);
+	DeleteObject(hBrushBlue);
 
 }
 
@@ -225,6 +265,11 @@ LRESULT CALLBACK WndProcMainWindow(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		else if (notificationCode == LBUTTONCLICKNC)
 		{
 			log("MainWindow1 L button clicked");
+		}
+		else if (notificationCode == UPDATEPROGRESSNC)
+		{
+			log("MainWindow1 Update progress NC received");
+			InvalidateRect(hWnd, NULL, true);
 		}
 	}
 	break;
@@ -352,7 +397,17 @@ LRESULT CALLBACK WndProcChildWindow(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	{
 	case WM_COMMAND:
 	{
-
+		WORD id = loword(wParam);
+		WORD notificationCode = HIWORD(wParam);
+		char str[256];
+		sprintf_s(str, "ChildWindow WM COMMAND id: %d notificationCode %d ", id, notificationCode);
+		log(str);
+		if (notificationCode == UPDATEPROGRESSNC)
+		{
+			log("Child window Update progress NC received");
+			//UpdateWindow(hWnd2);
+			InvalidateRect(hWnd, NULL, true);
+		}
 	}
 	break;
 	case WM_MOUSEMOVE:
